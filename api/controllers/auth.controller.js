@@ -18,11 +18,11 @@ export const signup = async (req, res, next) => {
 
     const existingUser = await User.findOne({ username });
     if (existingUser) {
-      res.status(200).json({ message: "Username is already exist" });
+      res.status(200).json({ success: false, message: "Username is already exist" });
     } else {
       const existingEmail = await User.findOne({ email });
       if (existingEmail) {
-        res.status(200).json({ message: "Email is already exist" });
+        res.status(200).json({ success: false, message: "Email is already exist" });
       } else {
         const hashedPassword = bcryptjs.hashSync(password, 10);
         const newUser = new User({
@@ -34,7 +34,7 @@ export const signup = async (req, res, next) => {
         await newUser.save();
         res
           .status(200)
-          .json({ message: "Signup has been successfully completed" });
+          .json({ success: true, message: "Signup has been successfully completed" });
       }
     }
   } catch (error) {

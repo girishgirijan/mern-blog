@@ -1,10 +1,58 @@
-import { Button, Label, TextInput } from "flowbite-react";
+import { Alert, Button, Label, TextInput, Spinner } from "flowbite-react";
+import { useState } from "react";
 import { Link } from "react-router-dom";
 
 export default function Signup() {
+  const [formData, setFormData] = useState({});
+  const [errorMessage, setErrorMessage] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState("");
+
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.id]: e.target.value.trim() });
+  };
+
+  //Sign up function
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    try {
+      setLoading(true);
+      setMessage("");
+      setErrorMessage("");
+      if (!formData.username || !formData.email || !formData.password) {
+        setErrorMessage("Please fill all fields");
+      } else {
+        const res = await fetch("/api/auth/signup", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(formData),
+        });
+        const data = await res.json();
+        if (data.success === false) {
+          setErrorMessage(data.message);
+          return false;
+        }
+        setMessage(data.message);
+        setFormData({
+          username: "",
+          email: "",
+          password: "",
+        });
+        setErrorMessage("");
+      }
+    } catch (error) {
+      setErrorMessage(error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen mt-20">
-      <div className="flex p-3 max-w-3xl mx-auto border-2 flex-col md:flex-row md:items-center gap-5">
+      <div className="flex p-3 max-w-3xl mx-auto flex-col md:flex-row md:items-center gap-5">
         {/*Left side */}
         <div className="flex-1">
           <Link to="/" className="text-4xl font-bold dark:text-white">
@@ -20,20 +68,51 @@ export default function Signup() {
         </div>
         {/*Right side */}
         <div className="flex-1">
-          <form className="flex flex-col gap-4">
+          <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
             <div>
               <Label value="Username" />
-              <TextInput type="text" placeholder="Username" id="username" />
+              <TextInput
+                type="text"
+                placeholder="Username"
+                id="username"
+                onChange={handleChange}
+                value={formData.username}
+              />
             </div>
             <div>
               <Label value="Email" />
-              <TextInput type="email" placeholder="Email" id="email" />
+              <TextInput
+                type="email"
+                placeholder="Email"
+                id="email"
+                onChange={handleChange}
+                value={formData.email}
+              />
             </div>
             <div>
               <Label value="Password" />
-              <TextInput type="password" placeholder="Password" id="password" />
+              <TextInput
+                type="password"
+                placeholder="Password"
+                id="password"
+                onChange={handleChange}
+                value={formData.password}
+              />
             </div>
-            <Button gradientDuoTone='purpleToPink' type="submit">Sign Up</Button>
+            <Button
+              disabled={loading}
+              gradientDuoTone="purpleToPink"
+              type="submit"
+            >
+              {loading ? (
+                <>
+                  <Spinner size="sm" />
+                  <span className="pl-3">Loading...</span>
+                </>
+              ) : (
+                "Sign Up "
+              )}
+            </Button>
           </form>
           <div className="flex gap-2 text-sm mt-4">
             <span>Have an account?</span>
@@ -41,6 +120,21 @@ export default function Signup() {
               Sign In
             </Link>
           </div>
+        </div>
+      </div>
+      <div className="flex max-w-3xl mx-auto flex-col md:flex-row md:items-center gap-5">
+        <div className="flex-1"></div>
+        <div className="flex-1">
+          {errorMessage && (
+            <Alert className="mt-4" color="failure">
+              {errorMessage}
+            </Alert>
+          )}
+          {message && (
+            <Alert className="mt-4" color="success">
+              {message}
+            </Alert>
+          )}
         </div>
       </div>
     </div>
