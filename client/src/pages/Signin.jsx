@@ -2,11 +2,19 @@ import { Alert, Button, Label, TextInput, Spinner } from "flowbite-react";
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 
+import { useDispatch, useSelector } from "react-redux";
+import {
+  signInStart,
+  signInSuccess,
+  signInFailure,
+} from "../redux/user/userSlice";
+
 export default function Signin() {
   const [formData, setFormData] = useState({});
-  const [errorMessage, setErrorMessage] = useState("");
-  const [loading, setLoading] = useState(false);  
   const navigate = useNavigate();
+
+  const dispatch = useDispatch();
+  const {loading, error} = useSelector((state) => state.user) 
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.id]: e.target.value.trim() });
@@ -17,10 +25,11 @@ export default function Signin() {
     e.preventDefault();
 
     try {
-      setLoading(true);      
-      setErrorMessage("");
+      dispatch(signInStart());
       if (!formData.email || !formData.password) {
-        setErrorMessage("Please fill all fields");
+        dispatch(
+          signInFailure({ success: false, message: "Please fill all fields" })
+        );
       } else {
         const res = await fetch("/api/auth/signin", {
           method: "POST",
@@ -31,15 +40,14 @@ export default function Signin() {
         });
         const data = await res.json();
         if (data.success === false) {
-          setErrorMessage(data.message);
+          dispatch(signInFailure(data));
           return false;
         }
+        dispatch(signInSuccess(data));
         navigate("/");
       }
     } catch (error) {
-      setErrorMessage(error.message);
-    } finally {
-      setLoading(false);
+      dispatch(signInFailure(error));
     }
   };
 
@@ -61,7 +69,7 @@ export default function Signin() {
         </div>
         {/*Right side */}
         <div className="flex-1">
-          <form className="flex flex-col gap-4" onSubmit={handleSubmit}>            
+          <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
             <div>
               <Label value="Email" />
               <TextInput
@@ -108,11 +116,11 @@ export default function Signin() {
       <div className="flex max-w-3xl mx-auto flex-col md:flex-row md:items-center gap-5">
         <div className="flex-1"></div>
         <div className="flex-1">
-          {errorMessage && (
+          {error && (
             <Alert className="mt-4" color="failure">
-              {errorMessage}
+              {error.message}
             </Alert>
-          )}          
+          )}
         </div>
       </div>
     </div>
