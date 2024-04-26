@@ -40,6 +40,7 @@ export default function DashProfile() {
       setImageFileUrl(URL.createObjectURL(file));
     }
   };
+  
   useEffect(() => {
     if (imageFile) {
       uploadImage();
