@@ -29,7 +29,7 @@ export default function Signin() {
       dispatch(signInStart());
       if (!formData.email || !formData.password) {
         dispatch(
-          signInFailure({ success: false, message: "Please fill all fields" })
+          signInFailure({ success: false, statusCode: 400, message: "Please fill all fields" })
         );
       } else {
         const res = await fetch("/api/auth/signin", {
