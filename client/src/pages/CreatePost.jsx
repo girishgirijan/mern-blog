@@ -18,6 +18,8 @@ export default function CreatePost() {
   const [imageUploadProgress, setImageUploadProgress] = useState(null);
   const [imageUploadError, setImageUploadError] = useState(null);
   const [formData, setFormData] = useState({});
+  const [publishError, setPublishError] = useState(null);
+  const [successMessage, setSuccessMessage] = useState(null);
 
   //Uploading image
   const handleUploadImage = async () => {
@@ -59,10 +61,40 @@ export default function CreatePost() {
     }
   };
 
+  //Create a new post
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setPublishError(null);
+    setSuccessMessage(null);
+    if (!formData.title || !formData.content) {
+      setPublishError("Please fill Title and Content");
+      return;
+    }
+    try {
+      const res = await fetch("/api/post/create", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formData),
+      });
+      const data = await res.json();
+      if (data.success === false) {
+        setPublishError(data.message);
+        return;
+      }
+      setSuccessMessage("Post has been successfully created");
+      setPublishError("");      
+      setFormData({})   
+    } catch (error) {
+      setPublishError(error.message);
+    }
+  };
+
   return (
     <div className="p-3 max-w-3xl mx-auto min-h-screen">
       <h1 className="text-center text-3xl my-7 font-semibold">CreatePost</h1>
-      <form className="flex flex-col gap-4">
+      <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
         <div className="flex flex-col gap-4 sm:flex-row justify-between">
           <TextInput
             type="text"
@@ -70,8 +102,18 @@ export default function CreatePost() {
             required
             id="title"
             className="flex-1"
+            onChange={(e) => {
+              setFormData({ ...formData, title: e.target.value });
+            }}
+            value={formData?.title}
           />
-          <Select className="flex-1">
+          <Select
+            className="flex-1"
+            onChange={(e) =>
+              setFormData({ ...formData, category: e.target.value })
+            }
+            value={formData?.category}
+          >
             <option value="uncategorized">Select a Category</option>
             <option value="javascript">JavaScript</option>
             <option value="reactjs">React.js</option>
@@ -105,7 +147,7 @@ export default function CreatePost() {
           </Button>
         </div>
         {formData?.image && (
-          <img 
+          <img
             src={formData.image}
             alt="Image"
             className="w-full h-72 object-cover"
@@ -116,6 +158,8 @@ export default function CreatePost() {
           placeholder="Write somthing.."
           className="h-72 mb-12"
           required
+          onChange={(value) => setFormData({ ...formData, content: value })}
+          value={formData?.content}
         />
         <Button type="submit" gradientDuoTone="purpleToPink">
           Publish
@@ -124,6 +168,16 @@ export default function CreatePost() {
       {imageUploadError && (
         <Alert color="failure" className="mt-4">
           {imageUploadError}
+        </Alert>
+      )}
+      {publishError && (
+        <Alert color="failure" className="mt-4">
+          {publishError}
+        </Alert>
+      )}
+      {successMessage && (
+        <Alert color="success" className="mt-4">
+          {successMessage}
         </Alert>
       )}
     </div>

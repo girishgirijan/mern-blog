@@ -5,7 +5,7 @@ export const create = async (req, res, next) => {
   if (!req.user.isAdmin)
     return next(errorHandler(403, "You are not allowded to create post"));
   if (!req.body.title || !req.body.content)
-    return next(errorHandler(400, "Please fill all fields"));
+    return next(errorHandler(400, "Please fill Title and Content"));
 
   const existingTitle = await Post.findOne({ title: req.body.title });
   if (existingTitle) return next(errorHandler(400, "Title is alreay in use. Please try different"));
