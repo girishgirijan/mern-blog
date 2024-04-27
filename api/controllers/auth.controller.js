@@ -58,7 +58,7 @@ export const signin = async (req, res, next) => {
 
     const validUser = await User.findOne(
       { email },
-      { _id: 1, username: 1, email: 1, password: 1, profilePicture: 1 }
+      { _id: 1, username: 1, email: 1, password: 1, profilePicture: 1, isAdmin: 1 }
     );
 
     if (!validUser)
@@ -70,7 +70,7 @@ export const signin = async (req, res, next) => {
       return next(errorHandler(401, "Invalid login credentials"));
 
     const { password: hashedPassword, ...rest } = validUser._doc;
-    const token = jwt.sign({ id: validUser._id }, process.env.JWT_SECRET);
+    const token = jwt.sign({ id: validUser._id, isAdmin: validUser.isAdmin }, process.env.JWT_SECRET);
     const expiryDate = new Date(Date.now() + 3600000); //1 Hour
 
     res
@@ -88,10 +88,10 @@ export const google = async (req, res, next) => {
     const { name, email, photo } = req.body;
     const user = await User.findOne(
       { email },
-      { _id: 1, username: 1, email: 1, password: 1, profilePicture: 1 }
+      { _id: 1, username: 1, email: 1, password: 1, profilePicture: 1, isAdmin: 1 }
     );
     if (user) {
-      const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET);
+      const token = jwt.sign({ id: user._id, isAdmin: user.isAdmin }, process.env.JWT_SECRET);
       const { password: hashedPassword, ...rest } = user._doc;
       const expiryDate = new Date(Date.now() + 3600000); //1 Hour
       res
@@ -112,7 +112,7 @@ export const google = async (req, res, next) => {
         profilePicture: photo,
       });
       await newUser.save();
-      const token = jwt.sign({ id: newUser._id }, process.env.JWT_SECRET);
+      const token = jwt.sign({ id: newUser._id, isAdmin: newUser.isAdmin }, process.env.JWT_SECRET);
       const { password: hashedPassword1, ...rest } = newUser._doc;
       const expiryDate = new Date(Date.now() + 3600000); //1 Hour
       res
