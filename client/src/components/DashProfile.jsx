@@ -1,6 +1,7 @@
 import { Alert, Button, Modal, Spinner, TextInput } from "flowbite-react";
 import { useEffect, useRef, useState } from "react";
 import { HiOutlineExclamationCircle } from "react-icons/hi";
+import { Link } from "react-router-dom";
 
 import {
   getDownloadURL,
@@ -20,7 +21,7 @@ import {
   deleteStart,
   deleteSuccess,
   deleteFailure,
-  signoutSuccess
+  signoutSuccess,
 } from "../redux/user/userSlice.js";
 import { useDispatch, useSelector } from "react-redux";
 
@@ -38,7 +39,6 @@ export default function DashProfile() {
   const filePickerRef = useRef();
   const dispatch = useDispatch();
 
-  
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -156,10 +156,10 @@ export default function DashProfile() {
   };
 
   //Signout
-  const handleSignout = async() => {
+  const handleSignout = async () => {
     try {
-      const res = await fetch('/api/user/signout', {
-        method: 'POST',
+      const res = await fetch("/api/user/signout", {
+        method: "POST",
       });
       const data = await res.json();
       if (!res.ok) {
@@ -170,7 +170,7 @@ export default function DashProfile() {
     } catch (error) {
       console.log(error.message);
     }
-  }
+  };
 
   return (
     <div className="max-w-lg mx-auto p-3 w-full">
@@ -249,6 +249,17 @@ export default function DashProfile() {
             "Update"
           )}
         </Button>
+        {currentUser?.isAdmin && (
+          <Link to='/create-post'>
+            <Button
+              type="button"
+              gradientDuoTone="purpleToPink"
+              className="w-full"
+            >
+              Create Post
+            </Button>
+          </Link>
+        )}
       </form>
       <div className="flex justify-between mt-5 font-semibold">
         <span
@@ -257,7 +268,9 @@ export default function DashProfile() {
         >
           Delete Account
         </span>
-        <span onClick={handleSignout} className="cursor-pointer text-green-500">Sign Out</span>
+        <span onClick={handleSignout} className="cursor-pointer text-green-500">
+          Sign Out
+        </span>
       </div>
       {imageFileUploadError && (
         <Alert color="failure" className="mt-4">
