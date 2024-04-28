@@ -23,12 +23,14 @@ export default function CreatePost() {
 
   //Uploading image
   const handleUploadImage = async () => {
+    setPublishError(null);
+    setSuccessMessage(null);
+    setImageUploadError(null);
     try {
       if (!file) {
         setImageUploadError("Please select an image");
         return;
-      }
-      setImageUploadError(null);
+      }     
       const storage = getStorage(app);
       const fileName = new Date().getTime() + file.name;
       const storageRef = ref(storage, fileName);
