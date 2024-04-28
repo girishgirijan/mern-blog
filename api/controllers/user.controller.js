@@ -53,15 +53,13 @@ export const updateUser = async (req, res, next) => {
 
 //Delete user account
 export const deleteUser = async (req, res, next) => {
-  if (req.user.id !== req.params.userId) {
+  if (!req.user.isAdmin && req.user.id !== req.params.userId) {
     return next(errorHandler(403, "You are not allowed to delete this user"));
   }
   try {
     await User.findByIdAndDelete(req.params.userId);
-    res
-      .clearCookie("access_token")
-      .status(200)
-      .json("Account has been deleted");
+    
+    res.status(200).json("Account has been deleted");
   } catch (error) {
     next(error);
   }
@@ -91,7 +89,13 @@ export const getUsers = async (req, res, next) => {
     const sortDirection = req.query.sort === "asc" ? 1 : -1;
 
     const users = await User.find()
-      .select({ username: 1, email: 1, profilePicture: 1, isAdmin: 1 })
+      .select({
+        username: 1,
+        email: 1,
+        profilePicture: 1,
+        isAdmin: 1,
+        createdAt: 1,
+      })
       .sort({ createdAt: sortDirection })
       .skip(startIndex)
       .limit(limit);
