@@ -1,9 +1,11 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Alert, Button, FileInput, Select, TextInput } from "flowbite-react";
 import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
 import { CircularProgressbar } from "react-circular-progressbar";
 import "react-circular-progressbar/dist/styles.css";
+import { useParams } from "react-router-dom";
+import { useSelector } from "react-redux";
 
 import {
   getDownloadURL,
@@ -13,13 +15,34 @@ import {
 } from "firebase/storage";
 import { app } from "../firebase.js";
 
-export default function CreatePost() {
+export default function UpdatePost() {
+  const { currentUser } = useSelector((state) => state.user);
   const [file, setFile] = useState(null);
   const [imageUploadProgress, setImageUploadProgress] = useState(null);
   const [imageUploadError, setImageUploadError] = useState(null);
-  const [formData, setFormData] = useState({ title: "", content: "" });
+  const [formData, setFormData] = useState({});
   const [publishError, setPublishError] = useState(null);
   const [successMessage, setSuccessMessage] = useState(null);
+  const { postId } = useParams();
+
+  //Fetech Post details
+  useEffect(() => {
+    try {
+      const fetchPost = async () => {
+        const res = await fetch(`/api/post/getposts?postId=${postId}`);
+        const data = await res.json();
+        if (data.success === false) {
+          setPublishError(data.message);
+          return;
+        }
+        setPublishError(null);
+        setFormData(data.posts[0]);
+      };
+      fetchPost();
+    } catch (error) {
+      console.log(error);
+    }
+  }, [postId]);
 
   //Uploading image
   const handleUploadImage = async () => {
@@ -63,7 +86,7 @@ export default function CreatePost() {
     }
   };
 
-  //Create a new post
+  //Update post
   const handleSubmit = async (e) => {
     e.preventDefault();
     setPublishError(null);
@@ -77,23 +100,24 @@ export default function CreatePost() {
       setPublishError("Please write something about the blog");
       return;
     }
-
     try {
-      const res = await fetch("/api/post/create", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(formData),
-      });
+      const res = await fetch(
+        `/api/post/updatepost/${formData._id}/${currentUser._id}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(formData),
+        }
+      );
       const data = await res.json();
       if (data.success === false) {
         setPublishError(data.message);
         return;
       }
-      setSuccessMessage("Post has been successfully created");
+      setSuccessMessage("Post has been successfully updated");
       setPublishError("");
-      setFormData({});
     } catch (error) {
       setPublishError(error.message);
     }
@@ -101,7 +125,7 @@ export default function CreatePost() {
 
   return (
     <div className="p-3 max-w-3xl mx-auto min-h-screen">
-      <h1 className="text-center text-2xl my-7 font-semibold">CREATE POST</h1>
+      <h1 className="text-center text-2xl my-7 font-semibold">UPDATE POST</h1>
       <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
         <div className="flex flex-col gap-4 sm:flex-row justify-between">
           <TextInput
@@ -170,7 +194,7 @@ export default function CreatePost() {
           value={formData?.content}
         />
         <Button type="submit" gradientDuoTone="purpleToPink">
-          Publish
+          Update Post
         </Button>
       </form>
       {imageUploadError && (
