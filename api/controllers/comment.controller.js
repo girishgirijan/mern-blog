@@ -10,16 +10,12 @@ export const createComment = async (req, res, next) => {
         errorHandler(403, "You are not authorized to create this comment")
       );
     }
-    if(!content){
-      return next(
-        errorHandler(403, "Please fill comment section")
-      );
+    if (!content) {
+      return next(errorHandler(403, "Please fill comment section"));
     }
 
-    if(Comment.length > 200){
-      return next(
-        errorHandler(403, "Comment length can not be more than 200")
-      );
+    if (Comment.length > 200) {
+      return next(errorHandler(403, "Comment length can not be more than 200"));
     }
 
     const newComment = new Comment({
@@ -29,6 +25,18 @@ export const createComment = async (req, res, next) => {
     });
     await newComment.save();
     res.status(200).json(newComment);
+  } catch (error) {
+    next(error);
+  }
+};
+
+//Get all comments of a post
+export const getPostComments = async (req, res, next) => {
+  try {
+    const comments = await Comment.find({ postId: req.params.postId }).sort({
+      createdAt: -1,
+    });
+    res.status(200).json(comments);
   } catch (error) {
     next(error);
   }
