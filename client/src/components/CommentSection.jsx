@@ -1,7 +1,7 @@
 import { Alert, Button, Textarea } from "flowbite-react";
 import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import Comment from "./Comment";
 
 export default function CommentSection({ postId }) {
@@ -9,6 +9,8 @@ export default function CommentSection({ postId }) {
   const [comment, setComment] = useState("");
   const [commentError, setCommentError] = useState(null);
   const [comments, setComments] = useState([]);
+
+  const navigate = useNavigate();
 
   useEffect(() => {
     const getComments = async () => {
@@ -57,6 +59,39 @@ export default function CommentSection({ postId }) {
       }
       setComments([data, ...comments]);
       setComment("");
+    } catch (error) {
+      setCommentError(error.message);
+    }
+  };
+
+  //Handle Likes
+  const handleLike = async (commentId) => {
+    try {
+      if (!currentUser) {
+        setCommentError("You need to login to make the comment like");
+        navigate("/sign-in");
+        return;
+      }
+      const res = await fetch(`/api/comment/likeComment/${commentId}`, {
+        method: "PUT",
+      });
+      const data = await res.json();
+      if (data.success === false) {
+        setCommentError(data.message);
+        return;
+      }
+
+      setComments(
+        comments.map((comment) =>
+          comment._id === commentId
+            ? {
+                ...comment,
+                likes: data.likes,
+                numberOfLikes: data.numberOfLikes,
+              }
+            : comment
+        )
+      );
     } catch (error) {
       setCommentError(error.message);
     }
@@ -124,7 +159,11 @@ export default function CommentSection({ postId }) {
             </div>
           </div>
           {comments.map((singleComment, index) => (
-            <Comment key={index} singleComment={singleComment} />
+            <Comment
+              key={index}
+              singleComment={singleComment}
+              onLike={handleLike}
+            />
           ))}
         </>
       )}
