@@ -96,6 +96,15 @@ export default function CommentSection({ postId }) {
       setCommentError(error.message);
     }
   };
+
+  //Handle comment edit
+  const handleEdit = async (comment, editedContent) => {
+    setComments(
+      comments.map((c) =>
+        c._id === comment._id ? { ...c, content: editedContent } : c
+      )
+    );
+  };
   return (
     <div className=" mx-auto w-full mt-4">
       {currentUser ? (
@@ -163,6 +172,7 @@ export default function CommentSection({ postId }) {
               key={index}
               singleComment={singleComment}
               onLike={handleLike}
+              onEdit={handleEdit}
             />
           ))}
         </>
