@@ -54,7 +54,7 @@ export default function CommentSection({ postId }) {
       });
       const data = await res.json();
       if (data.success === false) {
-        setCommentError(data.message);
+        navigate("/sing-in")
         return;
       }
       setComments([data, ...comments]);
@@ -77,7 +77,7 @@ export default function CommentSection({ postId }) {
       });
       const data = await res.json();
       if (data.success === false) {
-        setCommentError(data.message);
+        navigate("/sing-in")
         return;
       }
 
@@ -104,6 +104,27 @@ export default function CommentSection({ postId }) {
         c._id === comment._id ? { ...c, content: editedContent } : c
       )
     );
+  };
+
+  //Delete comment
+  const handleDelete = async (commentId) => {
+    try {
+      if (!currentUser) {
+        navigate("/sing-in");
+        return;
+      }
+      const res = await fetch(`/api/comment/deleteComment/${commentId}`, {
+        method: "DELETE",
+      });
+      const data = await res.json();
+      if (data.success === false) {
+        navigate("/sing-in")
+        return;
+      }
+      setComments(comments.filter((c) => c._id !== commentId))
+    } catch (error) {
+      console.log(error.message);
+    }
   };
   return (
     <div className=" mx-auto w-full mt-4">
@@ -173,6 +194,7 @@ export default function CommentSection({ postId }) {
               singleComment={singleComment}
               onLike={handleLike}
               onEdit={handleEdit}
+              onDelete={handleDelete}
             />
           ))}
         </>
