@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { HiOutlineExclamationCircle } from "react-icons/hi";
 import { FaCheck, FaTimes } from "react-icons/fa";
+import {useNavigate} from 'react-router-dom'
 
 export default function DashUsers() {
   const { currentUser } = useSelector((state) => state.user);
@@ -10,6 +11,7 @@ export default function DashUsers() {
   const [showMore, setShowMore] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [userIdToDelete, setUserIdToDelete] = useState("");
+  const navigate = useNavigate();
 
   //Fetch all users
   useEffect(() => {
@@ -17,6 +19,10 @@ export default function DashUsers() {
       try {
         const res = await fetch(`/api/user/getusers`);
         const data = await res.json();
+        if(data.success === false){
+            navigate("/sign-in")
+            return;
+        }
         if (res.ok) {
           setUsers(data.users);
           if (data.users.length < 9) {
